@@ -1,5 +1,9 @@
+require 'mini_magick'
+
 class Paletti
-  def self.say_hi
-    puts "Hi!"
+
+  def initialize(path_to_image)
+    @image = MiniMagick::Image.open(path_to_image)
   end
+
 end
