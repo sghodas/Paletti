@@ -10,7 +10,7 @@ class Magick::Pixel
   def is_distinct?(other_pixel)
     # Calculate contrast using the W3C formula
     #   http://www.w3.org/TR/WCAG20-TECHS/G145.html
-    lum = this.luminance
+    lum = self.luminance
     other_pixel_lum = other_pixel.luminance
     contrast = 0
     if lum > other_pixel_lum
@@ -27,7 +27,7 @@ class Magick::Pixel
   end
 
   def luminance
-    return 0.2126 * (this.red.to_f / Magick::QuantumRange.to_f) + 0.7152 * (this.green.to_f / Magick::QuantumRange.to_f) + 0.0722 * (this.blue.to_f / Magick::QuantumRange.to_f)
+    return 0.2126 * (self.red.to_f / Magick::QuantumRange.to_f) + 0.7152 * (self.green.to_f / Magick::QuantumRange.to_f) + 0.0722 * (self.blue.to_f / Magick::QuantumRange.to_f)
   end
 
 end
