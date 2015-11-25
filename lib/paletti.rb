@@ -9,6 +9,10 @@ class Paletti
   end
 
   def background_color
+    if @background_color
+      return @background_color
+    end
+
     # Make an array of all the edge/border colors
     border_colors = []
     @image.each_pixel do |pixel, col_idx, row_idx|
@@ -30,7 +34,8 @@ class Paletti
       pixel = sorted_border_colors[0]
     end
     pixel = backup_pixel if pixel.is_black_or_white? || border_color_counts[pixel].to_f / border_color_counts[backup_pixel].to_f < 0.3
-    return pixel.to_hsla
+    @background_color = pixel.to_hsla
+    return @background_color
   end
 
 end
