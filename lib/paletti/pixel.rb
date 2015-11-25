@@ -23,7 +23,7 @@ class Magick::Pixel
   end
 
   def is_dark?
-    return this.luminance < 0.5
+    return self.luminance < 0.5
   end
 
   def luminance
