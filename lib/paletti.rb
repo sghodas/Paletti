@@ -30,7 +30,7 @@ class Paletti
       pixel = sorted_border_colors[0]
     end
     pixel = backup_pixel if pixel.is_black_or_white? || border_color_counts[pixel].to_f / border_color_counts[backup_pixel].to_f < 0.3
-    return pixel
+    return pixel.to_hsla
   end
 
 end
