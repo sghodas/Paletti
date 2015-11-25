@@ -8,34 +8,62 @@ class Paletti
     @image = Magick::Image.read(path_to_image)[0]
   end
 
-  def background_color
-    if @background_color
-      return @background_color
+  def background_pixel
+    if @background_pixel
+      return @background_pixel
     end
 
-    # Make an array of all the edge/border colors
-    border_colors = []
+    # Make an array of all the edge/border pixels
+    border_pixels = []
     @image.each_pixel do |pixel, col_idx, row_idx|
       if col_idx == 0 #|| row_idx == 0 || col_idx == @image.columns - 1 || row_idx == @image.rows - 1
-        border_colors.push(pixel)
+        border_pixels.push(pixel)
       end
     end
 
-    # Make a hash of the edge/border color frequencies and sort them in descending order
-    border_color_counts = Hash.new(0)
-    border_colors.each { |border_color| border_color_counts[border_color] += 1 }
-    sorted_border_colors = border_colors.sort_by { |pixel, count| count }
+    # Make a hash of the edge/border pixel frequencies and sort by frequency
+    border_pixel_counts = Hash.new(0)
+    border_pixels.each { |border_pixel| border_pixel_counts[border_pixel] += 1 }
+    sorted_border_pixels = border_pixel_counts.sort_by { |pixel, count| -count }
+    sorted_border_pixels = sorted_border_pixels.flatten.select! { |pixel| pixel.class == Magick::Pixel }
 
-    # Get a non black or white color if possible
-    pixel = sorted_border_colors[0]
+    # Get a non black or white pixel if possible
+    pixel = sorted_border_pixels.first
     backup_pixel = pixel.dup
-    while (pixel.is_black_or_white? || border_color_counts[pixel].to_f / border_color_counts[backup_pixel].to_f < 0.3) && sorted_border_colors.length > 0
-      sorted_border_colors.delete(pixel)
-      pixel = sorted_border_colors[0]
+    while pixel.nil? && (pixel.is_black_or_white? || border_pixel_counts[pixel].to_f / border_pixel_counts[backup_pixel].to_f < 0.3) && sorted_border_pixels.length > 0
+      sorted_border_pixels.delete(pixel)
+      pixel = sorted_border_pixels.first
     end
-    pixel = backup_pixel if pixel.is_black_or_white? || border_color_counts[pixel].to_f / border_color_counts[backup_pixel].to_f < 0.3
-    @background_color = pixel.to_hsla
-    return @background_color
+    pixel = backup_pixel if pixel.is_black_or_white? || border_pixel_counts[pixel].to_f / border_pixel_counts[backup_pixel].to_f < 0.3
+    @background_pixel = pixel
+    return @background_pixel
+  end
+
+  def text_pixels
+    if @text_pixels
+      return @text_pixels
+    end
+
+    # Make an array of all the pixels and sort by frequency
+    pixels = []
+    @image.each_pixel { |pixel| pixels.push(pixel) }
+    pixel_counts = Hash.new(0)
+    pixels.each do |pixel|
+      if Magick::Pixel.norm(pixel.to_hsla[1]) < 0.15 * 255.to_f
+        pixel = Magick::Pixel.from_hsla(pixel.to_hsla[0], 0.15 * 255.to_f, pixel.to_hsla[2], pixel.to_hsla[3])
+      end
+      pixel_counts[pixel] += 1
+    end
+    sorted_pixels = pixels.sort_by { |pixel, count| count }
+
+    # Get the most common three colors that are distinct from each other and the background color
+    @text_pixels = []
+    while @text_pixels.length < 5
+      found = (sorted_pixels.find { |pixel| pixel.is_contrasting?(self.background_pixel) && @text_pixels.all? { |text_pixel| text_pixel.is_distinct?(pixel) } })
+      @text_pixels.push(found)
+    end
+    puts @text_pixels.map { |pixel| pixel.to_norm_rgba }
+    @text_pixels
   end
 
 end
