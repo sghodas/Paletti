@@ -25,17 +25,18 @@ class Paletti
     border_pixel_counts = Hash.new(0)
     border_pixels.each { |border_pixel| border_pixel_counts[border_pixel] += 1 }
     sorted_border_pixels = border_pixel_counts.sort_by { |pixel, count| -count }
-    sorted_border_pixels = sorted_border_pixels.flatten.select! { |pixel| pixel.class == Magick::Pixel }
+    sorted_border_pixels = sorted_border_pixels.flatten.select! do |pixel|
+      pixel.class == Magick::Pixel && border_pixel_counts[pixel].to_f / (@image.columns * 2 + (@image.rows - 2) * 2 ).to_f > 0.01
+    end
 
     # Get a non black or white pixel if possible
     pixel = sorted_border_pixels.first
     backup_pixel = pixel.dup
-    while pixel.nil? && pixel.is_black_or_white? && sorted_border_pixels.length > 0
+    while pixel.nil? && pixel.is_black_or_white? && sorted_border_pixels.length > 1
       sorted_border_pixels.delete(pixel)
       pixel = sorted_border_pixels.find { |p| border_pixel_counts[p].to_f / border_pixel_counts[pixel].to_f > 0.3 && !p.is_black_or_white?  }
     end
-    pixel = backup_pixel if pixel.is_black_or_white? || pixel.nil?
-    return @background_pixel = pixel
+    return @background_pixel = pixel || backup_pixel
   end
 
   def text_pixels
@@ -53,11 +54,14 @@ class Paletti
       end
       pixel_counts[pixel] += 1
     end
-    sorted_pixels = pixels.sort_by { |pixel, count| count }
+    sorted_pixels = pixel_counts.sort_by { |pixel, count| -count }
+    sorted_pixels = sorted_pixels.flatten.select! do |pixel|
+      pixel.class == Magick::Pixel
+    end
 
     # Get the most common three colors that are distinct from each other and the background color
     @text_pixels = []
-    while @text_pixels.length < 5
+    while @text_pixels.length < 3
       found = (sorted_pixels.find { |pixel| pixel.is_contrasting?(self.background_pixel) && @text_pixels.all? { |text_pixel| text_pixel.is_distinct?(pixel) } })
       @text_pixels.push(found)
     end
