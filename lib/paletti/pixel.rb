@@ -62,7 +62,7 @@ class Magick::Pixel
   end
 
   def luminance
-    r, g, b = self.norm_red / 255.to_f, self.norm_green / 255.to_f , self.norm_blue / 255.to_f
+    r, g, b = self.norm_red / 255.to_f, self.norm_green / 255.to_f, self.norm_blue / 255.to_f
     if r <= 0.03928
       r = r / 12.92
     else
