@@ -16,7 +16,7 @@ class Paletti
     # Make an array of all the edge/border pixels
     border_pixels = []
     @image.each_pixel do |pixel, col_idx, row_idx|
-      if col_idx == 0 #|| row_idx == 0 || col_idx == @image.columns - 1 || row_idx == @image.rows - 1
+      if col_idx == 0 || row_idx == 0 || col_idx == @image.columns - 1 || row_idx == @image.rows - 1
         border_pixels.push(pixel)
       end
     end
@@ -30,13 +30,12 @@ class Paletti
     # Get a non black or white pixel if possible
     pixel = sorted_border_pixels.first
     backup_pixel = pixel.dup
-    while pixel.nil? && (pixel.is_black_or_white? || border_pixel_counts[pixel].to_f / border_pixel_counts[backup_pixel].to_f < 0.3) && sorted_border_pixels.length > 0
+    while pixel.nil? && pixel.is_black_or_white? && sorted_border_pixels.length > 0
       sorted_border_pixels.delete(pixel)
-      pixel = sorted_border_pixels.first
+      pixel = sorted_border_pixels.find { |p| border_pixel_counts[p].to_f / border_pixel_counts[pixel].to_f > 0.3 && !p.is_black_or_white?  }
     end
-    pixel = backup_pixel if pixel.is_black_or_white? || border_pixel_counts[pixel].to_f / border_pixel_counts[backup_pixel].to_f < 0.3
-    @background_pixel = pixel
-    return @background_pixel
+    pixel = backup_pixel if pixel.is_black_or_white? || pixel.nil?
+    return @background_pixel = pixel
   end
 
   def text_pixels
@@ -62,8 +61,7 @@ class Paletti
       found = (sorted_pixels.find { |pixel| pixel.is_contrasting?(self.background_pixel) && @text_pixels.all? { |text_pixel| text_pixel.is_distinct?(pixel) } })
       @text_pixels.push(found)
     end
-    puts @text_pixels.map { |pixel| pixel.to_norm_rgba }
-    @text_pixels
+    return @text_pixels
   end
 
 end

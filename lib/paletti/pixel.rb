@@ -53,20 +53,39 @@ class Magick::Pixel
     other_pixel_lum = other_pixel.luminance
     contrast = 0
     if lum > other_pixel_lum
-      contrast = (lum.to_f / 255.to_f + 0.05) / (other_pixel_lum.to_f / 255.to_f + 0.05)
+      contrast = (lum + 0.05) / (other_pixel_lum + 0.05)
     else
-      contrast = (other_pixel_lum.to_f / 255.to_f + 0.05) / (lum.to_f / 255.to_f + 0.05)
+      contrast = (other_pixel_lum + 0.05) / (lum + 0.05)
     end
 
-    return contrast.to_f > 3.0
+    return contrast.to_f > 4.5
   end
 
   def is_dark?
-    return self.luminance / 255.to_f < 0.5
+    return self.luminance < 0.5
   end
 
   def luminance
-    return 0.2126 * self.norm_red + 0.7152 * self.norm_green + 0.0722 * self.norm_blue
+    r, g, b = self.norm_red / 255.to_f, self.norm_green / 255.to_f , self.norm_blue / 255.to_f
+    if r <= 0.03928
+      r = r / 12.92
+    else
+      r = ((r + 0.055) / 1.055) ** 2.4
+    end
+
+    if g <= 0.03928
+      g = g / 12.92
+    else
+      g = ((g + 0.055) / 1.055) ** 2.4
+    end
+
+    if b <= 0.03928
+      b = b / 12.92
+    else
+      b = ((b + 0.055) / 1.055) ** 2.4
+    end
+
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
   end
 
 end
