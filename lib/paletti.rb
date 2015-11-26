@@ -49,15 +49,13 @@ class Paletti
     @image.each_pixel { |pixel| pixels.push(pixel) }
     pixel_counts = Hash.new(0)
     pixels.each do |pixel|
-      if Magick::Pixel.norm(pixel.to_hsla[1]) < 0.15 * 255.to_f
+      if pixel.to_hsla[1] < 0.15 * 255.to_f
         pixel = Magick::Pixel.from_hsla(pixel.to_hsla[0], 0.15 * 255.to_f, pixel.to_hsla[2], pixel.to_hsla[3])
       end
       pixel_counts[pixel] += 1
     end
     sorted_pixels = pixel_counts.sort_by { |pixel, count| -count }
-    sorted_pixels = sorted_pixels.flatten.select! do |pixel|
-      pixel.class == Magick::Pixel
-    end
+    sorted_pixels = sorted_pixels.flatten.select! { |pixel| pixel.class == Magick::Pixel }
 
     # Get the most common three colors that are distinct from each other and the background color
     @text_pixels = []
