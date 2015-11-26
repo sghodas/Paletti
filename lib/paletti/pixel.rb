@@ -54,7 +54,7 @@ class Magick::Pixel
       contrast = (other_pixel_lum + 0.05) / (lum + 0.05)
     end
 
-    return contrast.to_f > 4.5
+    return contrast.to_f > 3
   end
 
   def is_dark?
