@@ -26,15 +26,15 @@ class Paletti
     border_pixels.each { |border_pixel| border_pixel_counts[border_pixel] += 1 }
     sorted_border_pixels = border_pixel_counts.sort_by { |pixel, count| -count }
     sorted_border_pixels = sorted_border_pixels.flatten.select! do |pixel|
-      pixel.class == Magick::Pixel && border_pixel_counts[pixel].to_f / (@image.columns * 2 + (@image.rows - 2) * 2 ).to_f > 0.01
+      pixel.class == Magick::Pixel
     end
 
     # Get a non black or white pixel if possible
     pixel = sorted_border_pixels.first
     backup_pixel = pixel.dup
-    while pixel.nil? && pixel.is_black_or_white? && sorted_border_pixels.length > 1
+    while !pixel.nil? && pixel.is_black_or_white? && sorted_border_pixels.length > 1
       sorted_border_pixels.delete(pixel)
-      pixel = sorted_border_pixels.find { |p| border_pixel_counts[p].to_f / border_pixel_counts[pixel].to_f > 0.3 && !p.is_black_or_white?  }
+      pixel = sorted_border_pixels.find { |p| border_pixel_counts[p].to_f / border_pixel_counts[pixel].to_f > 0.05 && !p.is_black_or_white?  }
     end
     return @background_pixel = pixel || backup_pixel
   end
@@ -47,6 +47,8 @@ class Paletti
     # Make an array of all the pixels and sort by frequency
     pixels = []
     @image.each_pixel { |pixel| pixels.push(pixel) }
+    # For speed, just use a random sample of 250,000 pixels max
+    pixels = pixels.sample(250_000) if pixels.length > 250_000
     pixel_counts = Hash.new(0)
     pixels.each do |pixel|
       if pixel.to_hsla[1] < 0.15 * 255.to_f
