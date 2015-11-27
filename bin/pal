@@ -1,12 +1,29 @@
 #!/usr/bin/env ruby
 
 require 'paletti'
+require 'optparse'
 
-img = Paletti.new(ARGV[0])
-bg_pixel = img.background_pixel
-text_pixels = img.text_pixels
-puts "Background color:\nR: #{bg_pixel.to_norm_rgba[0].to_i} G: #{bg_pixel.to_norm_rgba[1].to_i} B: #{bg_pixel.to_norm_rgba[2].to_i}\n\n"
-puts "Text colors:\n"
-text_pixels.each do |pixel|
-  puts "R: #{pixel.to_norm_rgba[0].to_i} G: #{pixel.to_norm_rgba[1].to_i} B: #{pixel.to_norm_rgba[2].to_i}\n"
+begin
+  option_parser = OptionParser.new do |opts|
+    executable_name = File.basename($PROGRAM_NAME)
+    opts.banner = "
+      Paletti takes an image and finds its background color as well as the best primary, secondary, and detail text colors that are readable on the background color.
+
+      Usage: #{executable_name} image_path
+    "
+  end
+end
+
+if ARGV.empty?
+  puts "Error: you must specifiy a path (local or URL) to an image."
+  puts option_parser.help
+else
+  img = Paletti.new(ARGV[0])
+  bg_pixel = img.background_pixel
+  text_pixels = img.text_pixels
+  puts "Background color:\nR: #{bg_pixel.to_norm_rgba[0].to_i} G: #{bg_pixel.to_norm_rgba[1].to_i} B: #{bg_pixel.to_norm_rgba[2].to_i}\n\n"
+  puts "Text colors:\n"
+  text_pixels.each do |pixel|
+    puts "R: #{pixel.to_norm_rgba[0].to_i} G: #{pixel.to_norm_rgba[1].to_i} B: #{pixel.to_norm_rgba[2].to_i}\n"
+  end
 end
